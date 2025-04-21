@@ -11,7 +11,6 @@ def generate_ids(start='aaaaa0', end='zzzzz9'):
     current = start
     while current <= end:
         yield ''.join(current)
-        # Increment base36-style
         i = len(current) - 1
         while i >= 0:
             if current[i] == '9':
@@ -56,5 +55,5 @@ def fetch_and_save(id_code):
 os.makedirs('screenshots', exist_ok=True)
 os.chdir('screenshots')
 
-for code in generate_ids('aaaaa1', 'zzzzz9'):  # adjust range as needed
+for code in generate_ids('aaaaa1', 'zzzzz9'):
     fetch_and_save(code)
