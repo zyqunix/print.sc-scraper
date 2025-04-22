@@ -2,34 +2,19 @@ import requests
 from bs4 import BeautifulSoup
 import string
 import os
-from time import sleep
+from concurrent.futures import ThreadPoolExecutor
+from itertools import product
 
-def generate_ids(start='aaaaa0', end='zzzzz9'):
-    base = string.ascii_lowercase
-    start = list(start)
-    end = list(end)
-    current = start
-    while current <= end:
-        yield ''.join(current)
-        i = len(current) - 1
-        while i >= 0:
-            if current[i] == '9':
-                current[i] = 'a'
-                break
-            elif current[i] == 'z':
-                current[i] = '0'
-                i -= 1
-            else:
-                current[i] = chr(ord(current[i]) + 1)
-                break
-        else:
-            break
+chars = string.ascii_lowercase + string.digits
+
+def generate_ids():
+    for combo in product(chars, repeat=5):
+        if any(c.isalnum() for c in combo):
+            yield ''.join(combo)
 
 def fetch_and_save(id_code):
     url = f'https://prnt.sc/{id_code}'
-    headers = {
-        'User-Agent': 'Mozilla/5.0'
-    }
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -55,5 +40,5 @@ def fetch_and_save(id_code):
 os.makedirs('screenshots', exist_ok=True)
 os.chdir('screenshots')
 
-for code in generate_ids('aaaaa1', 'zzzzz9'):
-    fetch_and_save(code)
+with ThreadPoolExecutor(max_workers=50) as executor:
+    executor.map(fetch_and_save, generate_ids())
